@@ -1,83 +1,54 @@
-def HDistance(A, B):
+def AllKmers(k):
+    if k==1:
+        return ["A","C","G","T"]
+    result=[]
+    pomocni=AllKmers(k-1)
+    for i in ["A","C","G","T"]:
+        for j in pomocni:
+            result.append(i+j)
+    return result
+
+def HammingDistance(p,q):
+    niz1=[]
+    for slovo in p:
+        niz1.append(slovo)
+    niz2=[]
+    for slovo in q:
+        niz2.append(slovo)
     count=0
-    for element in range(0,len(A)):
-      if(A[element]!=B[element]):
-        count=count+1
+    for i in range(0,len(niz1)):
+        if niz1[i]!=niz2[i]:
+            count+=1
     return count
-  
-def neighbors(pattern, d):
-	if d == 0:
-		return [pattern]
-	if len(pattern) == 1:
-		return ['A', 'C', 'G', 'T']
-	neighborhood = []
-	sufneigh = neighbors(pattern[1:],d)
-	for x in sufneigh:
-		if HDistance(pattern[1:],x) < d:
-			for y in ['A', 'C', 'G', 'T']:
-				 neighborhood.append(y + x)
-		else:
-			neighborhood.append(pattern[0] + x)
-	return neighborhood
 
 
-def symbolToNumber(symbol):
-	if symbol == "A":
-		return 0
-	if symbol == "C":
-		return 1
-	if symbol == "G":
-		return 2
-	if symbol == "T":
-		return 3
-  
-  
-def numberToSymbol(x):
-	if x == 0:
-		return "A"
-	if x == 1:
-		return "C"
-	if x == 2:
-		return "G"
-	if x == 3:
-		return "T"
-  
-  
-def patternToNumber(pattern):
-	if len(pattern) == 0:
-		return 0
-	return 4 * patternToNumber(pattern[0:-1]) + symbolToNumber(pattern[-1:])
+def KmersWithMismatches(pattern,d,skup):
+    #stvaramo skup k-mers koji se razlikuju od pattern za d slova
+    kmers=AllKmers(len(pattern))
+    for element in kmers:
+        if HammingDistance(element,pattern)<=d:
+            skup.add(element)
+    
 
+def MotifEnumeration(Dna,k,d):
+    patterns=[]
+    for i in range(len(Dna)):
+        pattern=set()
+        for j in range(len(Dna[i])-k+1):
+            kmers=set()
+            KmersWithMismatches(Dna[i][j:j+k],d,kmers)
+            for el in kmers:
+                pattern.add(el)
+        for r in pattern:
+            patterns.append(r)
 
-def numberToPattern(x, k):
-	if k == 1:
-		return numberToSymbol(x)
-	return numberToPattern(x // 4, k-1) + numberToSymbol(x % 4)
+    rezultat=[]
+    for el in patterns:
+        if patterns.count(el)==len(Dna):
+            rezultat.append(el)
+    rezultat=list(set(rezultat))
+    return  rezultat
 
-
-def motifEnumeration(dna, k, d):
-	patterns = [0]*4**k
-	for x in  dna:
-		for i in range(len(x)-k+1):
-			neighborhood = neighbors(x[i:i+k], d)
-			for n in neighborhood:
-				inAll = True
-				for y in dna:
-					inY = False
-					for j in range(len(y)-k+1):
-						if HDistance(n, y[j:j+k]) <= d:
-							inY = True
-					if not inY:
-						inAll = False
-				if inAll:
-					patterns[patternToNumber(n)] = 1
-	finalPatterns = []
-	for i in range(4**k):
-		if patterns[i] == 1:	
-			finalPatterns.append(numberToPattern(i, k))
-	return finalPatterns
-
-
-rez=motifEnumeration(Dna,k,d)
+rez=MotifEnumeration(Dna,k,d)
 for i in range(0, len(rez)):
   print(rez[i])
